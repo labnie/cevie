@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-search.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/NormalesdeMxico_1.js"></script>
+        <script src="data/Experiencias_radiales_DGESUM_2.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+            highlightLayer.openPopup();
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[9.493329712450066,-128.92848718703937],[38.338271083292575,-78.42580724327338]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_googlesatelite_0');
+        map.getPane('pane_googlesatelite_0').style.zIndex = 400;
+        var layer_googlesatelite_0 = L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+            pane: 'pane_googlesatelite_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        layer_googlesatelite_0;
+        map.addLayer(layer_googlesatelite_0);
+        function pop_NormalesdeMxico_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">municipio</th>\
+                        <td>' + (feature.properties['municipio'] !== null ? autolinker.link(String(feature.properties['municipio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">localidad</th>\
+                        <td>' + (feature.properties['localidad'] !== null ? autolinker.link(String(feature.properties['localidad']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Esc_norm_1</th>\
+                        <td>' + (feature.properties['Esc_norm_1'] !== null ? autolinker.link(String(feature.properties['Esc_norm_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Estado</th>\
+                        <td>' + (feature.properties['Estado'] !== null ? autolinker.link(String(feature.properties['Estado']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_NormalesdeMxico_1_0() {
+            return {
+                pane: 'pane_NormalesdeMxico_1',
+                radius: 4.8,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,24,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_NormalesdeMxico_1');
+        map.getPane('pane_NormalesdeMxico_1').style.zIndex = 401;
+        map.getPane('pane_NormalesdeMxico_1').style['mix-blend-mode'] = 'normal';
+        var layer_NormalesdeMxico_1 = new L.geoJson(json_NormalesdeMxico_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_NormalesdeMxico_1',
+            layerName: 'layer_NormalesdeMxico_1',
+            pane: 'pane_NormalesdeMxico_1',
+            onEachFeature: pop_NormalesdeMxico_1,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_NormalesdeMxico_1_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_NormalesdeMxico_1);
+        function pop_Experiencias_radiales_DGESUM_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if (typeof layer.closePopup == 'function') {
+                        layer.closePopup();
+                    } else {
+                        layer.eachLayer(function(feature){
+                            feature.closePopup()
+                        });
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">municipio</th>\
+                        <td>' + (feature.properties['municipio'] !== null ? autolinker.link(String(feature.properties['municipio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">localidad</th>\
+                        <td>' + (feature.properties['localidad'] !== null ? autolinker.link(String(feature.properties['localidad']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Esc_norm_1</th>\
+                        <td>' + (feature.properties['Esc_norm_1'] !== null ? autolinker.link(String(feature.properties['Esc_norm_1']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Estado</th>\
+                        <td>' + (feature.properties['Estado'] !== null ? autolinker.link(String(feature.properties['Estado']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Pro_ radio</th>\
+                        <td>' + (feature.properties['Pro_ radio'] !== null ? autolinker.link(String(feature.properties['Pro_ radio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Contacto</th>\
+                        <td>' + (feature.properties['Contacto'] !== null ? autolinker.link(String(feature.properties['Contacto']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Correo-e</th>\
+                        <td class="visible-with-data" id="Correo-e">' + (feature.properties['Correo-e'] !== null ? autolinker.link(String(feature.properties['Correo-e']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Enlaces</th>\
+                        <td class="visible-with-data" id="Enlaces">' + (feature.properties['Enlaces'] !== null ? autolinker.link(String(feature.properties['Enlaces']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Experiencias_radiales_DGESUM_2_0() {
+            return {
+                pane: 'pane_Experiencias_radiales_DGESUM_2',
+        rotationAngle: -0.0349066,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/Experiencias_radiales_DGESUM_2.svg',
+            iconSize: [20.52, 20.52]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Experiencias_radiales_DGESUM_2');
+        map.getPane('pane_Experiencias_radiales_DGESUM_2').style.zIndex = 402;
+        map.getPane('pane_Experiencias_radiales_DGESUM_2').style['mix-blend-mode'] = 'normal';
+        var layer_Experiencias_radiales_DGESUM_2 = new L.geoJson(json_Experiencias_radiales_DGESUM_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Experiencias_radiales_DGESUM_2',
+            layerName: 'layer_Experiencias_radiales_DGESUM_2',
+            pane: 'pane_Experiencias_radiales_DGESUM_2',
+            onEachFeature: pop_Experiencias_radiales_DGESUM_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_Experiencias_radiales_DGESUM_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Experiencias_radiales_DGESUM_2);
+        map.addLayer(layer_Experiencias_radiales_DGESUM_2);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: '<img src="legend/Experiencias_radiales_DGESUM_2.png" /> Experiencias_radiales_DGESUM', layer: layer_Experiencias_radiales_DGESUM_2},
+            {label: '<img src="legend/NormalesdeMxico_1.png" /> Normales de México', layer: layer_NormalesdeMxico_1},
+            {label: "google satelite", layer: layer_googlesatelite_0, radioGroup: 'bm' },]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: layer_Experiencias_radiales_DGESUM_2,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'Estado'}));
+        document.getElementsByClassName('search-button')[0].className +=
+         ' fa fa-binoculars';
+        </script>
+    </body>
+</html>
